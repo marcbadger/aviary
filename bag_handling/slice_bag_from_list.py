@@ -151,7 +151,7 @@ if __name__ == '__main__':
 
     parser.add_argument(
         '--out_bag', '-o', action='store', default="out.bag",
-        help='name of the sliced output bag')
+        help='name of the sliced output bag (currently not used because slices are autonamed with rostime)')
     timingfile = parser.add_argument_group('timing file')
     timingfile.add_argument(
         '--timing_file', '-f', action='store', default=None, type=str,
@@ -186,6 +186,8 @@ if __name__ == '__main__':
     
     # get a list of start and end rostimes for each (or maybe just one) chunk
     start_stops = find_start_end_time(in_bag, args)
+
+    out_dir = args.out_dir
 
     # make the directory where bag slices will be saved
     print("output directory:{}".format(out_dir))
