@@ -250,7 +250,7 @@ if __name__ == '__main__':
                 finished_bags.append(i)
 
         # keep only the bags that have not finished
-        out_bags[:] = [bag for i, bag in enumerate(out_bags) if i not in finished_bags]
+        out_bags = [bag for i, bag in enumerate(out_bags) if i not in finished_bags]
 
         # If it is time to print saving information
         if t > next_print_time:
