@@ -122,14 +122,25 @@ def find_start_end_time(in_bag, args):
 class SlicedBag(rosbag.Bag):
     '''methods for adding messages to a bag only within a specified time range'''
 
-    def __init__(self, out_dir, bag_base_name, event_start, event_stop, **kwargs):
+    def __init__(self, out_dir, event_start, event_stop, custom_name=None, **kwargs):
 
         # each bag object will keep track of its own target start and stop times 
         # so we can check with each bag whether we should write to it
         self.time_start=event_start
         self.time_stop=event_stop
 
-        self.out_bag_name = os.path.join(out_dir, bag_base_name + '_{:.03f}-{:.03f}_slice.bag'.format(self.time_start.to_sec(),self.time_stop.to_sec()))
+        self.date = time.localtime(self.time_start.to_sec())
+        self.date = time.strftime("%Y-%m-%d", self.date)
+
+        if custom_name:
+            self.out_bag_name = os.path.join(
+                out_dir, custom_name)
+        else:
+            self.out_bag_name = os.path.join(
+                out_dir, 'aviary_{}_{:.03f}-{:.03f}_slice.bag'.format(
+                    self.date, 
+                    self.time_start.to_sec(),
+                    self.time_stop.to_sec()))
 
         # initialize the rest of the rosbag.Bag object
         super(SlicedBag, self).__init__(self.out_bag_name, **kwargs)
@@ -150,7 +161,7 @@ if __name__ == '__main__':
         argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument(
-        '--out_bag', '-o', action='store', default="out.bag",
+        '--out_bag', '-o', action='store', default=None,
         help='name of the sliced output bag (currently not used because slices are autonamed with rostime)')
     timingfile = parser.add_argument_group('timing file')
     timingfile.add_argument(
@@ -193,14 +204,12 @@ if __name__ == '__main__':
     print("output directory:{}".format(out_dir))
     Path(out_dir).mkdir(parents=True, exist_ok=True)
 
-    # split bag chunks will be saved as <bag_base_name>_<start_rostime>-<end_rostime>_slice.bag
-    # where bag_base_name is the original bag name up to the date (13 characters for bag start time
-    # and extension get sliced off the end)
-    bag_base_name = os.path.basename(args.bagfile[:-13])
+    # If out_bag is set, the bag will be set with that name. Otherwise
+    # split bag chunks will be saved as aviary_<date>_<start_rostime>-<end_rostime>_slice.bag
     
     # create a list of SlicedBag objects that we will write messages to as we step through
     # the original bag messages
-    out_bags = [SlicedBag(out_dir, bag_base_name, event_start, event_stop,
+    out_bags = [SlicedBag(out_dir, event_start, event_stop, args.out_bag,
                   mode='w', chunk_threshold=cthresh) for event_start, event_stop in start_stops]
 
     if not out_bags:
