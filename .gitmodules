@@ -1,0 +1,3 @@
+[submodule "muSSP"]
+	path = muSSP
+	url = https://github.com/yu-lab-vt/muSSP.git
