@@ -58,7 +58,7 @@ We will need to make some modifications to ```slice_bag_from_list.py```. It will
 
 Finally, we can launch the job by running the following on ```kostas-ap```:
 ```
-sbatch --wait sbatch_slice_bags_cluster.bash $BIG_DIR $BIG_BAG $DEST_DIR
+sbatch sbatch_slice_bags_cluster.bash $BIG_DIR $BIG_BAG $DEST_DIR
 ```
 where ```BIG_DIR=/archive/birds/aviary/data2019/whole_bags``` is where the large bag ```BIG_BAG``` is, and ```DEST_DIR``` is the place where the bag slices will get saved[^3].
 
