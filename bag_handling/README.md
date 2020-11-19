@@ -60,23 +60,22 @@ Finally, we can launch the job by running the following on ```kostas-ap```:
 ```
 sbatch sbatch_slice_bags_cluster.bash $BIG_DIR $BIG_BAG $DEST_DIR
 ```
-where ```BIG_DIR=/archive/birds/aviary/data2019/whole_bags``` is where the large bag ```BIG_BAG``` is, and ```DEST_DIR``` is the place where the bag slices will get saved<sup>[3](#foot3)</sup>.
-
-<a name="foot3"><sup>3</sup></a> We will need to make sure the next step matches with where we save the bag slices.
+where ```BIG_DIR=/archive/birds/aviary/data2019/whole_bags``` is the location of the large bag ```BIG_BAG``` that copied over previously, and ```DEST_DIR=/archive/birds/aviary/data2019/frames_around_annotations``` is the place where the bag slices will get saved.
 
 ## How to export bags
-To export images from the sliced bags, you need ROS, a custom package called ```ffmpeg_image_transport_tools```, and a custom build of ```ffmpeg```. So we need to start a job that runs inside yet another docker image. The bash script [sbatch_extract_everything_cluster.bash](sbatch_extract_everything_cluster.bash) tells sbatch to launch a job with 1 GPU, 8 cpus, 32G of memory, that will last for 4 hours<sup>[4](#foot4)</sup>:
+To export images from the sliced bags, you need ROS, a custom package called ```ffmpeg_image_transport_tools```, and a custom build of ```ffmpeg```. So we need to start a job that runs inside yet another docker image. The bash script [extract_frames_from_bags.bash](extract_frames_from_bags.bash) tells sbatch to launch an array of four tasks (```#SBATCH --array=0-3```), each of which will get 1 GPU, 8 cpus, and 32G of memory and will last for 1 hour:
 ```
 #SBATCH --gpus=1
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem=32G
-#SBATCH --time=04:00:00
-#SBATCH --qos=kostas-med
-#SBATCH --partition=kostas-compute
+#SBATCH --time=01:00:00
+#SBATCH --array=0-3
+#SBATCH --qos=low
+#SBATCH --partition=compute
 ```
-<a name="foot4"><sup>4</sup></a> We will actually have a bunch of tiny bags, each of which will only take about 30 seconds or so to process, so the best thing to do is probably to launch a bunch of low priority jobs [as a batch](https://github.com/daniilidis-group/cluster_tutorials/tree/master/slurm_intro#batches) and processes the small bags in parallel. When each job launches it gets assigned a ```$SLURM_ARRAY_TASK_ID```, which it can use to look up in a dictionary which bags it should export.  Then it should check which of its assigned bags have already been completed and only export the ones that haven't been finished yet.
+We will have a bunch of tiny bags, each of which will only take about 30 seconds or so to process, so we will use ```$SLURM_ARRAY_TASK_ID``` to decide which bags this task should process and then check if each bag has already been exported before running the export command.
 
-Our the docker container we want now is:
+The docker container we want now is:
 ```
 CONTAINER_NAME="birds-complete"
 CONTAINER_IMAGE="adarshmodh/birds:complete"
@@ -84,6 +83,15 @@ CONTAINER_IMAGE="adarshmodh/birds:complete"
 
 And the command we will run is:
 ```
-/bin/bash /bin/bash /bird_packages/aviary/bag_handling/extract_everything_cluster.bash $TARGET_DIR $TARGET_DATE
+/bin/bash /bird_packages/aviary/bag_handling/extract_frames_from_bags.bash $TARGET_DIR $DEST_DIR $SLURM_ARRAY_TASK_ID $SLURM_ARRAY_TASK_MAX
 ```
-which will run [extract_everything_cluster.bash](extract_everything_cluster.bash) which imports some extra libraries, copies some library files, and call ```ffmpeg_image_transport_tools decode_bag_ns.launch``` for each bag that satisfies ```TARGET_DATE``` in ```TARGET_DIR```.
+which will run [extract_frames_from_bags.bash](extract_frames_from_bags.bash) which:
+1. Import some extra libraries and copies some library files
+1. Collect a list of bag files in TARGET_DIR
+1. Use $SLURM_ARRAY_TASK_ID and $SLURM_ARRAY_TASK_MAX to decide which bags it should try to work on
+1. Then for each bag:
+     - Check if the bag has already been exported
+     - If not yet exported:
+          - Call ```ffmpeg_image_transport_tools decode_bag_ns.launch``` on the bag
+          - Create a blank bag_name.done file, which will help with checking above.
+1. Once all bags are finished, return with exit code 0 so that SLURM will know the task is finished
