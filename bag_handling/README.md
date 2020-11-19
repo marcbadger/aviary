@@ -63,7 +63,7 @@ sbatch sbatch_slice_bags_cluster.bash $BIG_DIR $BIG_BAG $DEST_DIR
 where ```BIG_DIR=/archive/birds/aviary/data2019/whole_bags``` is the location of the large bag ```BIG_BAG``` that copied over previously, and ```DEST_DIR=/archive/birds/aviary/data2019/frames_around_annotations``` is the place where the bag slices will get saved.
 
 ## How to export bags
-To export images from the sliced bags, you need ROS, a custom package called ```ffmpeg_image_transport_tools```, and a custom build of ```ffmpeg```. So we need to start a job that runs inside yet another docker image. The bash script [extract_frames_from_bags.bash](extract_frames_from_bags.bash) tells sbatch to launch an array of four tasks (```#SBATCH --array=0-3```), each of which will get 1 GPU, 8 cpus, and 32G of memory and will last for 1 hour:
+To export images from the sliced bags, you need ROS, a custom package called [```ffmpeg_image_transport_tools```](https://github.com/daniilidis-group/ffmpeg_image_transport_tools), and a custom build of ```ffmpeg```. So we need to start a job that runs inside yet another docker image. The bash script [extract_frames_from_bags.bash](extract_frames_from_bags.bash) tells sbatch to launch an array of four tasks (```#SBATCH --array=0-3```), each of which will get 1 GPU, 8 cpus, and 32G of memory and will last for 1 hour:
 ```
 #SBATCH --gpus=1
 #SBATCH --cpus-per-gpu=8
