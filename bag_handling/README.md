@@ -13,7 +13,7 @@ To work with the bags, you will need to start a 'job' on the cluster, which will
 The basch scripts below contain example scripts for launching jobs with appropriate docker images, but if you want to modify them or learn more about how it works, refer to the cluster tutorials for [how to launch interactive and batch jobs](https://github.com/daniilidis-group/cluster_tutorials/tree/master/slurm_intro) and [how to launch jobs that require a docker image](https://github.com/daniilidis-group/cluster_tutorials/tree/master/pyxis).
 
 ## How to slice bags
-To slice bags, you need ROS, which means you need to start a job that runs inside a docker image that contains ROS. To slice bags, you do not need a GPU, so you do not need to ask for one. The bash script [sbatch_slice_bags_cluster.bash](sbatch_slice_bags_cluster.bash) tells sbatch to launch a job with 8 cpus, 32G of memory, that will last for 6 hours.
+To slice bags, you need ROS, which means you need to start a job that runs inside a docker image that contains ROS. To slice bags, you do not need a GPU, so you do not need to ask for one. The bash script [slice_bags_cluster_sbatch.bash](slice_bags_cluster_sbatch.bash) tells sbatch to launch a job with 8 cpus, 32G of memory, that will last for 6 hours.
 ```
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
@@ -63,7 +63,7 @@ sbatch sbatch_slice_bags_cluster.bash $BIG_DIR $BIG_BAG $DEST_DIR
 where ```BIG_DIR=/archive/birds/aviary/data2019/whole_bags``` is the location of the large bag ```BIG_BAG``` that copied over previously, and ```DEST_DIR=/archive/birds/aviary/data2019/frames_around_annotations``` is the place where the bag slices will get saved.
 
 ## How to export bags
-To export images from the sliced bags, you need ROS, a custom package called [```ffmpeg_image_transport_tools```](https://github.com/daniilidis-group/ffmpeg_image_transport_tools), and a custom build of ```ffmpeg```. So we need to start a job that runs inside yet another docker image. The bash script [extract_frames_from_bags.bash](extract_frames_from_bags.bash) tells sbatch to launch an array of four tasks (```#SBATCH --array=0-3```), each of which will get 1 GPU, 8 cpus, and 32G of memory and will last for 1 hour:
+To export images from the sliced bags, you need ROS, a custom package called [```ffmpeg_image_transport_tools```](https://github.com/daniilidis-group/ffmpeg_image_transport_tools), and a custom build of ```ffmpeg```. So we need to start a job that runs inside yet another docker image. The bash script [extract_frames_from_bags_sbatch.bash](extract_frames_from_bags_sbatch.bash) tells sbatch to launch an array of four tasks (```#SBATCH --array=0-3```), each of which will get 1 GPU, 8 cpus, and 32G of memory and will last for 1 hour:
 ```
 #SBATCH --gpus=1
 #SBATCH --cpus-per-gpu=8
@@ -85,13 +85,16 @@ And the command we will run is:
 ```
 /bin/bash /bird_packages/aviary/bag_handling/extract_frames_from_bags.bash $TARGET_DIR $DEST_DIR $SLURM_ARRAY_TASK_ID $SLURM_ARRAY_TASK_MAX
 ```
-which will run [extract_frames_from_bags.bash](extract_frames_from_bags.bash) which:
+which will run [extract_frames_from_bags.bash](extract_frames_from_bags.bash) which will:
 1. Import some extra libraries and copies some library files
-1. Collect a list of bag files in TARGET_DIR
-1. Use $SLURM_ARRAY_TASK_ID and $SLURM_ARRAY_TASK_MAX to decide which bags it should try to work on
+1. Call extract_frames_from_bags.py
+
+Finally, [extract_frames_from_bags.py](extract_frames_from_bags.py) will:
+1. Collect a list of bags in the target directory
+1. Split them into $SLURM_ARRAY_TASK_MAX chunks
+1. Take the bags chunk corresponding to $SLURM_ARRAY_TASK_ID
 1. Then for each bag:
      - Check if the bag has already been exported
-     - If not yet exported:
+     - If not yet exported by looking for images from that bag in the destination directory:
           - Call ```ffmpeg_image_transport_tools decode_bag_ns.launch``` on the bag
-          - Create a blank bag_name.done file, which will help with checking above.
 1. Once all bags are finished, return with exit code 0 so that SLURM will know the task is finished
