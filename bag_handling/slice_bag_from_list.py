@@ -17,6 +17,8 @@ import csv
 
 from pathlib2 import Path
 
+from processor import JSONProcessor
+
 tz = pytz.timezone('US/Eastern')
 
 def utc_to_local(utc_dt):
@@ -34,6 +36,35 @@ def to_datetime(utc_sec):
 def utc_time_since_epoch(dt):
     """Convert local timezone datetime to utc since epoch"""
     return ((dt - datetime.datetime(1970,1,1,tzinfo=pytz.utc)).total_seconds())
+
+def start_end_from_annotation(in_bag, args):
+    """Get ROS start and end times based on a COCO annotation file.
+
+    Keyword arguments:
+    in_bag -- a bag of rosbag.Bag class
+    args.annotation_file -- a COCO style json file containing image annotations with rostime
+
+    """
+
+    t_bag_start = in_bag.get_start_time()
+    t_bag_end   = in_bag.get_end_time()
+
+    print 'start bag time:   %15.2f' % t_bag_start, \
+        ' = ', to_datetime(t_bag_start)
+    print 'end bag   time:   %15.2f' % t_bag_end, \
+        ' = ', to_datetime(t_bag_end)
+
+    jp = JSONProcessor(args.from_annotations)
+    jp.process_images(mode=1)
+    rt = jp.get_ros_tuples(mode = 0, delta = 0.4)
+
+    # adjust times to account for waiting for ffmpeg decoding to encounter a keyframe
+    rt_adjusted = [(rr[0] - 0.3, rr[1] + 0.075) for rr in rt]
+
+    # select only the time ranges in the bag we loaded
+    rt_in_bag = [(rospy.Time(rr[0]), rospy.Time(rr[1])) for rr in rt_adjusted if rr[0] > t_bag_start and rr[1] < t_bag_end]
+
+    return rt_in_bag
 
 def find_start_end_time(in_bag, args):
     """Get ROS start and end times.
@@ -163,11 +194,13 @@ if __name__ == '__main__':
     parser.add_argument(
         '--out_bag', '-o', action='store', default=None,
         help='name of the sliced output bag (currently not used because slices are autonamed with rostime)')
-    timingfile = parser.add_argument_group('timing file')
+    timingfile = parser.add_mutually_exclusive_group()
     timingfile.add_argument(
-        '--timing_file', '-f', action='store', default=None, type=str,
+        '--timing_file', action='store', default=None, type=str,
         help='Filename of file containing relative timing of events to slice.')
-    timingfile.add_argument(
+    timingfile.add_argument('--from_annotations', action='store', default=None, type=str, 
+        help='COCO style annotation file from which to export bag slices based on rostime')
+    parser.add_argument(
         '--out_dir', action='store', default='/archive/birds/aviary/data2019/long_videos/', type=str,
         help='location of saved bags')
     parser.add_argument(
@@ -195,8 +228,12 @@ if __name__ == '__main__':
               in_bag.chunk_threshold
     print "using chunk threshold of ", cthresh
     
-    # get a list of start and end rostimes for each (or maybe just one) chunk
-    start_stops = find_start_end_time(in_bag, args)
+    if args.from_annotations:
+        start_stops = start_end_from_annotation(in_bag, args)
+
+    else:
+        # get a list of start and end rostimes for each (or maybe just one) chunk
+        start_stops = find_start_end_time(in_bag, args)
 
     out_dir = args.out_dir
 

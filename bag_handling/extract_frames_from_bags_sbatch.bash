@@ -18,14 +18,16 @@ DEST_DIR=$2 # this should be /archive/birds/aviary/data2019/frames_around_annota
 export NVIDIA_VISIBLE_DEVICES=all
 export NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
 
-# this script just calls extract_frames_from_bags.bash with inputs:
+# this script just calls extract_frames_from_bags.[bash/py] with inputs:
 #   --TARGET_DIR the directory containing the small bags
+#	--DEST_DIR the destination for the extracted images
 # 	--SLURM_ARRAY_TASK_ID the id of the task within the task array
 #	--SLURM_ARRAY_TASK_MAX the max task array
 
-# extract_frames_from_bags.bash will:
+# extract_frames_from_bags.py will:
+#  - collect a list of bag files in TARGET_DIR
 #  - select the files that correspond to 
-# 	 $SLURM_ARRAY_TASK_ID out of $SLURM_ARRAY_TASK_MAX
+#    $SLURM_ARRAY_TASK_ID out of $SLURM_ARRAY_TASK_MAX
 #  - check which bags have already been completed
 #  - call ffmpeg_image_transport_tools decode_bag on this list
 
