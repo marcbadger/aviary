@@ -13,16 +13,16 @@ CONTAINER_NAME="python-ros"
 CONTAINER_IMAGE="osrf/ros:melodic-desktop-full-bionic"
 EXTRA_MOUNTS="/scratch/bird_packages:/bird_packages,/archive/birds/aviary:/archive/birds/aviary,/archive/$USER:/archive/$USER,/scratch/$USER:/scratch/$USER"
 
-BAG_DIR=$1 # /archive/birds/aviary/data2019/long_videos (2019) or /archive/birds/aviary/data (2020)
+BAG_DIR=$1 # /archive/birds/aviary/data2019/whole_bags (2019) or /archive/birds/aviary/data (2020)
 BIG_BAG=$2
-DEST_DIR=$3 # /archive/birds/aviary/data2019/long_videos/tgia_dataset
+DEST_DIR=$3 # /archive/birds/aviary/data2019/frames_around_annotations
 
 # slice_bags_cluster.bash just calls slice_bag_from_list.py with inputs:
 #  --timing file $BIG_BAG.slices
 #  --out_dir $DEST_DIR
 #  --bag_name $BAG_DIR/$BIG_BAG
 
-COMMAND="/bin/bash /home/marc/aviary/bag_handling/slice_bags_cluster.bash $BAG_DIR $BIG_BAG $DEST_DIR"
+COMMAND="/bin/bash /bird_packages/aviary/bag_handling/slice_bags_cluster.bash $BAG_DIR $BIG_BAG $DEST_DIR"
 
 echo "Starting slicing job for $BIG_BAG"
 
