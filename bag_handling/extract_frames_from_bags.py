@@ -52,12 +52,13 @@ def extract_frames(bagname, filesdir, basename):
             + ' name_space:={}'.format(basename.replace("-","_").replace(".","_")))
 
     print(command)
-    # output, error = run_command(command)
+    
+    output, error = run_command(command)
 
-    # if error:
-    #     text_file = open("{}.extract_frames.error".format(os.path.join(filesdir,basename)), "w")
-    #     text_file.write(error)
-    #     text_file.close()
+    if error:
+        text_file = open("{}.extract_frames.error".format(os.path.join(filesdir,basename)), "w")
+        text_file.write(error)
+        text_file.close()
 
 
 if __name__ == '__main__':
