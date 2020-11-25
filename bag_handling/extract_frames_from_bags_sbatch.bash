@@ -11,7 +11,7 @@
 #SBATCH --partition=compute
 
 # collect the inputs
-TARGET_DIR=$1 # this should be /archive/birds/aviary/data2019/whole_bags
+TARGET_DIR=$1 # this should be /archive/birds/aviary/data2019/frames_around_annotations
 DEST_DIR=$2 # this should be /archive/birds/aviary/data2019/frames_around_annotations
 
 # set some enviornment variables

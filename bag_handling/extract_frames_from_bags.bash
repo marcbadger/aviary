@@ -29,7 +29,7 @@ source /bird_packages/catkin_build_ws/install/setup.bash --extend
 
 # These are our inputs:
 
-TARGET_DIR=$1 # /archive/birds/aviary/data2019/whole_bags
+TARGET_DIR=$1 # /archive/birds/aviary/data2019/frames_around_annotations
 DEST_DIR=$2 # /archive/birds/aviary/data2019/frames_around_annotations
 # these should already exist (maybe):
 SLURM_ARRAY_TASK_ID=$3
