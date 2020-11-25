@@ -2,6 +2,7 @@ import os
 import sys
 import glob
 import time
+import math
 
 import argparse
 import shlex
@@ -45,17 +46,18 @@ def extract_frames(bagname, filesdir, basename):
 
     Path(os.path.join(filesdir,'frames')).mkdir(parents=True, exist_ok=True)
 
-    command = 'roslaunch ffmpeg_image_transport_tools decode_bag_ns.launch'
+    command = ('roslaunch ffmpeg_image_transport_tools decode_bag_ns.launch'
             + ' bag:={} out_file_dir:={}'.format(bagname, filesdir)
             + ' write_frames:=true write_individual_frames:=true write_video:=false'
-            + ' name_space:={}'.format(basename.replace("-","_").replace(".","_"))
+            + ' name_space:={}'.format(basename.replace("-","_").replace(".","_")))
 
-    output, error = run_command(command)
+    print(command)
+    # output, error = run_command(command)
 
-    if error:
-        text_file = open("{}.extract_frames.error".format(os.path.join(filesdir,basename)), "w")
-        text_file.write(error)
-        text_file.close()
+    # if error:
+    #     text_file = open("{}.extract_frames.error".format(os.path.join(filesdir,basename)), "w")
+    #     text_file.write(error)
+    #     text_file.close()
 
 
 if __name__ == '__main__':
@@ -68,25 +70,29 @@ if __name__ == '__main__':
     parser.add_argument(
         '--target_dir', help='target directory containing bags to extract data from')
     parser.add_argument(
-        '--dest_dir', help='destination directory to save the frames')
+        '--dest_dir', type=str, default=None, help='destination directory to save the frames')
     parser.add_argument(
-        '--task_id', type=int, help='slurm array task id')
+        '--task_id', type=int, default=0, help='slurm array task id')
     parser.add_argument(
-        '--num_tasks', type=int, help='total number of slurm tasks')
+        '--num_tasks', type=int, default=1, help='total number of slurm tasks')
     
     args = parser.parse_args()
 
-    bag_names = glob.glob(os.path.join(args.target_dir,'aviary_{}*_slice.bag'.format(args.target_date)))
+    bag_names = glob.glob(os.path.join(args.target_dir,'aviary_*_slice.bag'))
     bag_names.sort()
 
     # split bag list in to even chunks
-    task_bags = [bag_names[i:i+num_tasks] for i in range(0, len(bag_names), num_tasks)]
+    task_bags = [bag_names[i:i+args.num_tasks] for i in range(0, len(bag_names), args.num_tasks)]
 
-    this_tasks_bags = task_bags[task_id]
+    this_tasks_bags = [tb[args.task_id] for tb in task_bags if len(tb) > args.task_id]
 
     for bag_num, bagname in enumerate(this_tasks_bags):
 
         filesdir = bagname.replace("slice.bag","files")
+
+        if args.dest_dir:
+            filesdir = os.path.join(args.dest_dir, os.path.basename(filesdir))
+
         basename = os.path.basename(bagname.replace("_slice.bag",""))
 
         print("Base directory: {}".format(filesdir))
