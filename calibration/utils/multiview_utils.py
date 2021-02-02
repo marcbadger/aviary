@@ -29,9 +29,7 @@ def get_cam(frames, device='cpu', yaml_file='extrinsic_calib_v5.yaml'):
     cams = [frame_to_cam_map[i] for i in frames]  
     
     # cam parameters from yaml
-    this_dir = os.path.dirname(__file__)
-
-    calibs = yaml.safe_load(open(os.path.join(this_dir, yaml_file)))
+    calibs = yaml.safe_load(open(os.path.join('calibration_files', yaml_file)))
     cam_Ps = [np.array(calibs[key]['T_cam_imu']) for key in sorted(calibs)]
     cam_in = [np.array(calibs[key]['intrinsics']) for key in sorted(calibs)]
     cam_dt = [np.array(calibs[key]['distortion_coeffs']) for key in sorted(calibs)]

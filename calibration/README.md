@@ -6,6 +6,9 @@ Calibrations are ok, but not great. We will try to improve them by either:
 1. annotating or detecting 3D points that can be seen by multiple cameras
 and then jointly optimizing 3D point positions and camera calibration parameters.
 
+## Files
+Calibration files are in [calibration_files](calibration_files) and image annotations are in [annotation_files](annotation_files)
+
 ## Installation instructions
 If you have pytorch and opencv installed, you can probably run this with a few additional packages, which are listed in [requirements.txt](../requirements.txt).
 ```pip install -r requirements.txt```
