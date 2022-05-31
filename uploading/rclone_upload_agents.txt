@@ -1,0 +1,5 @@
+/home/marc/aviary/bag_handling/rclone_aviaryone.conf
+/home/marc/aviary/bag_handling/rclone_aviarytwo.conf
+/home/marc/aviary/bag_handling/rclone_aviarythree.conf
+/home/marc/aviary/bag_handling/rclone_aviaryfour.conf
+/home/marc/aviary/bag_handling/rclone_aviaryfive.conf

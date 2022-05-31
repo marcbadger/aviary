@@ -1,0 +1,39 @@
+<launch>
+  <arg name="bag"/>
+  <arg name="out_file_dir"/>
+  <arg name="write_frames" default="false"/>
+  <arg name="write_individual_frames" default="false"/>
+  <arg name="keep_ratio" default="1"/>
+  <arg name="name_space" default="/"/>
+
+  <node pkg="ffmpeg_image_transport_tools" type="decode_bag" name="decode_bag" ns="$(arg name_space)" required="true" clear_params="true" output="screen">
+    <param name="bag_file" type="string" value="$(arg bag)"/>
+    <param name="frame_base_dir" value="$(arg out_file_dir)/frames"/>
+    <param name="video_base_name" value="$(arg out_file_dir)/video_full"/>
+    <param name="keep_ratio" value="$(arg keep_ratio)"/>
+    <param name="write_frames" value="$(arg write_frames)"/>
+    <param name="write_individual_frames" value="$(arg write_individual_frames)"/>
+    <!-- number of rows and columns in the output image -->
+    <param name="num_rows" type="int" value="2"/>
+    <param name="num_cols" type="int" value="4"/>
+    <!-- will stop after max_num_frames -->
+    <param name="max_num_frames" type="int" value="100000000"/>
+    <param name="frame_rate" type="double" value="40.0"/>
+
+    <rosparam param="location_to_camera">
+      [ 3, 2, 7, 6,
+        0, 1, 4, 5]
+    </rosparam>
+    <rosparam param="image_topics">
+      ["/cam_sync/cam0/image_raw/ffmpeg",
+      "/cam_sync/cam1/image_raw/ffmpeg",
+      "/cam_sync/cam2/image_raw/ffmpeg",
+      "/cam_sync/cam3/image_raw/ffmpeg",
+      "/cam_sync/cam4/image_raw/ffmpeg",
+      "/cam_sync/cam5/image_raw/ffmpeg",
+      "/cam_sync/cam6/image_raw/ffmpeg",
+      "/cam_sync/cam7/image_raw/ffmpeg"
+      ]
+    </rosparam>
+  </node>
+</launch>
