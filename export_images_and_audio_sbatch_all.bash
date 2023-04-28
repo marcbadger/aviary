@@ -5,8 +5,8 @@
 #SBATCH --mem=32G
 #SBATCH --time=01:00:00
 #SBATCH --array=0-12
-#SBATCH --qos=low
-#SBATCH --partition=compute
+#SBATCH --qos=normal
+#SBATCH --partition=batch
 
 # collect the inputs
 TARGET_DIR=$1 # this should be /archive/birds/aviary/data2019/frames_around_annotations
