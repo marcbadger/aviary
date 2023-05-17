@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --gpus=rtx2080ti:1
+#SBATCH --gpus=rtx2080ti:5
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem=32G
 #SBATCH --time=01:00:00
