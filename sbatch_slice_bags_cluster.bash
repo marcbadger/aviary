@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#SBATCH --output=log.out
+#SBATCH --job-name=any_name_you_want
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 #SBATCH --time=04:00:00
