@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#SBATCH --output=log.out
+#SBATCH --job-name=any_name_you_want
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem=32G
 #SBATCH --time=01:00:00
